@@ -11,7 +11,7 @@ from rich.console import Console
 from rich.panel import Panel
 from rich.table import Table
 
-from . import craigslist, dedup, html, llm, redfin, storage, walk, zillow, zumper
+from . import craigslist, dedup, evals, html, llm, redfin, storage, walk, zillow, zumper
 from .browser import context
 from .models import Listing
 from .rank import rank, score
@@ -177,7 +177,7 @@ def ingest(address: str | None, key: str | None, direction: str, channel: str,
       casita ingest --body-file ./msg.txt --address "1614 Balboa" --channel text
     """
     if body_file:
-        body = Path(body_file).read_text()
+        body = Path(body_file).read_text(encoding="utf-8")
     if not body:
         console.print("[red]no body — pass argument or --body-file[/red]")
         return
@@ -1078,7 +1078,7 @@ def _render_site(filename: str, output_dir: Path) -> dict[str, int | Path]:
 <head><meta charset="utf-8"><title>Casita</title></head>
 <body><p>No listings in DB. Run <code>casita search</code> first.</p></body>
 </html>
-""")
+""", encoding="utf-8")
         return {
             "out_html": out_html,
             "listings": 0,
@@ -1094,7 +1094,7 @@ def _render_site(filename: str, output_dir: Path) -> dict[str, int | Path]:
     out_html.write_text(html.render(
         listings, run=run, walk_map=walk_map, convo_map=convo_map,
         drive_bakery_map=drive_bakery_map, drive_map=drive_map,
-    ))
+    ), encoding="utf-8")
 
     # Per-listing detail pages — one file per active listing under tmp/listing/.
     from . import listing_page
@@ -1108,7 +1108,7 @@ def _render_site(filename: str, output_dir: Path) -> dict[str, int | Path]:
                 L, conn, walk_map=walk_map, drive_map=drive_map,
                 drive_bakery_map=drive_bakery_map,
             )
-            (listing_dir / f"{slug}.html").write_text(page_html)
+            (listing_dir / f"{slug}.html").write_text(page_html, encoding="utf-8")
             detail_count += 1
 
     _copy_static_assets(output_dir)
@@ -1374,6 +1374,62 @@ def analyze_prefs(local: bool):
         "and commit the reconciled policy.[/dim]"
     )
 
+@cli.command(name="eval")
+@click.option(
+    "--fixture",
+    type=click.Path(exists=True, dir_okay=False, path_type=Path),
+    default=None,
+    help="SQLite file to check. Defaults to the demo fixture.",
+)
+@click.option("--strict", is_flag=True, help="Exit non-zero if any error-severity finding exists.")
+@click.option("--samples", default=3, help="Sample listing keys to show per check.")
+def eval_cmd(fixture: Path | None, strict: bool, samples: int):
+    """Check the DB for places the pipeline disagrees with itself.
+
+    Deterministic and offline: no network, no credentials, no LLM calls.
+    Reports only — every finding is for a human to judge.
+    """
+    db_path = fixture or DEMO_FIXTURE
+    conn = sqlite3.connect(db_path)
+    conn.row_factory = sqlite3.Row
+    try:
+        findings = evals.run_all(conn)
+    finally:
+        conn.close()
+
+    by_check: dict[str, list] = {}
+    for f in findings:
+        by_check.setdefault(f.check, []).append(f)
+
+    console.print()
+    console.print(f"[dim]{db_path}[/dim]\n")
+
+    if not findings:
+        console.print("[green]no findings.[/green]")
+        return
+
+    for check in evals.CHECKS:
+        name = check.__name__.replace("check_", "")
+        hits = by_check.get(name, [])
+        if not hits:
+            console.print(f"[green]✓[/green] {name} [dim]— clean[/dim]")
+            continue
+        sev = hits[0].severity
+        colour = "red" if sev == evals.ERROR else "yellow"
+        console.print(f"[{colour}]•[/{colour}] [bold]{name}[/bold] ({len(hits)}) [dim]{sev}[/dim]")
+        for f in hits[:samples]:
+            console.print(f"    [dim]{f.listing_key}[/dim] — {f.detail}")
+        if len(hits) > samples:
+            console.print(f"    [dim]… {len(hits) - samples} more[/dim]")
+        console.print()
+
+    errors = [f for f in findings if f.severity == evals.ERROR]
+    console.print(
+        f"[dim]{len(findings)} findings, {len(errors)} error-severity. "
+        f"reports only — no data was modified.[/dim]"
+    )
+    if strict and errors:
+        raise SystemExit(1)
 
 @cli.command()
 @click.option("--listing", required=True)

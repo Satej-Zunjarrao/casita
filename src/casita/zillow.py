@@ -354,6 +354,7 @@ def _parse_detail_html(html: str, listing: Listing) -> None:
         policy, allowed = _classify_pets(pets_val)
         if policy:
             listing.dog_policy = policy
+            listing.dog_policy_evidence = f"zillow facts grid: {pets_val[:120]!r}"
         if allowed is not None:
             listing.pets_allowed = allowed
 
@@ -366,6 +367,7 @@ def _parse_detail_html(html: str, listing: Listing) -> None:
         if policy:
             listing.dog_policy = policy
             listing.pets_allowed = policy in ("large_ok", "dogs_ok")
+            listing.dog_policy_evidence = f"zillow body text matched {policy}"
 
     # Listing-agent name lives in body text as "Listed by …". Possibilities:
     #   "Listed by property owner" (no name)  — show "property owner"

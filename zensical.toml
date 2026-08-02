@@ -16,6 +16,7 @@ nav = [
     { "Deduplication" = "how-it-works/deduplication.md" },
     { "Ranking" = "how-it-works/ranking.md" },
     { "Learning" = "how-it-works/learning.md" },
+    { "Consistency Checks" = "how-it-works/consistency-checks.md" },
     { "Static Site" = "how-it-works/static-site.md" },
   ] },
   { "Architecture" = "architecture.md" },

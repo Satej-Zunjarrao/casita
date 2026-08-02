@@ -19,7 +19,10 @@ asks Gemini to return every listing with:
 - a severity: `ok`, `concerns`, or `filtered`
 
 The ranking policy keeps the personal assumptions: large dogs, SF walkability,
-Marin drive context, trail or beach access, and practical livability.
+Marin drive context, trail or beach access, and practical livability. An unverified dog policy is scored as a risk rather than a neutral. Two dogs
+at 90 and 100 lb are the binding constraint of this search, so a listing whose
+policy nobody has confirmed carries a small penalty, enough to break ties in
+favour of certainty, not enough to bury a listing worth a phone call.
 
 ## Ways This Could Go Further
 

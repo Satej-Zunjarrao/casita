@@ -188,24 +188,32 @@ def _parse_detail_html(html: str, listing: Listing) -> None:
     m = _DOG_POLICY_RE.search(html)
     if m:
         verdict = m.group(1).lower()
+        # Record the matched text so the claim can be audited later.
+        evidence = f"zumper dog policy field: {m.group(1).strip()[:120]!r}"
         if "not allowed" in verdict:
             listing.dog_policy = "no_dogs"
             listing.pets_allowed = False
+            listing.dog_policy_evidence = evidence
         elif "small dogs" in verdict:
             listing.dog_policy = "small_only"
             listing.pets_allowed = False
+            listing.dog_policy_evidence = evidence
         elif "large dogs" in verdict:
             listing.dog_policy = "large_ok"
             listing.pets_allowed = True
+            listing.dog_policy_evidence = evidence
         elif verdict == "allowed":
             listing.dog_policy = "dogs_ok"
             listing.pets_allowed = True
+            listing.dog_policy_evidence = evidence
         return
+
     # Fallback to the preloaded state — empty array = no pets.
     m2 = _PETS_RE.search(html)
     if m2 and not m2.group(1).strip():
         listing.dog_policy = "no_dogs"
         listing.pets_allowed = False
+        listing.dog_policy_evidence = "zumper preloaded pets array was empty"
 
 
 def fetch_and_parse(listing: Listing) -> Listing:

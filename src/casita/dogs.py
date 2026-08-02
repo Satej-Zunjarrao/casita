@@ -52,8 +52,10 @@ _DOGS_OK = re.compile(
 def classify(text: str | None, default: DogPolicy | None = None) -> DogPolicy | None:
     """Pick the strongest signal from the text.
 
-    `default` lets callers express prior knowledge (e.g. Craigslist's
-    `pets_dog=1` URL filter implies `dogs_ok` baseline before reading the body).
+    `default` is a fallback for when the text yields no signal. It should
+    reflect evidence about the listing, not about the search that found it:
+    a `pets_dog=1` URL filter tells us what we asked for, not what the
+    landlord allows.
     """
     if not text:
         return default
@@ -76,4 +78,5 @@ LABELS: dict[DogPolicy, str] = {
     "dogs_ok": "Dogs OK",
     "small_only": "Small dogs only",
     "no_dogs": "No dogs",
+    "unverified": "Verify dog policy",
 }

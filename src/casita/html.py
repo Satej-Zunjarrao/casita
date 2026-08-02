@@ -1405,9 +1405,10 @@ def _card(L: Listing, walk_map: dict | None = None, convo: dict | None = None,
     added_date = L.first_seen.date().isoformat() if L.first_seen else ""
 
     badge = f'<span class="badge">{_esc(L.source)}</span>'
-    dog_label = dogs.LABELS.get(L.dog_policy) if L.dog_policy else None
+    dog_policy = L.dog_policy or "unverified"
+    dog_label = dogs.LABELS.get(dog_policy)
     dog_badge = (
-        f'<span class="dog-badge dog-badge-{_esc(L.dog_policy)}">{_esc(dog_label)}</span>'
+        f'<span class="dog-badge dog-badge-{_esc(dog_policy)}">{_esc(dog_label)}</span>'
         if dog_label else ""
     )
 

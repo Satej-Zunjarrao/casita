@@ -59,6 +59,12 @@ def score(listing: Listing, walk_map: dict | None = None) -> int:
         s += 12
     elif listing.dog_policy == "dogs_ok":
         s += 6
+    elif listing.dog_policy in (None, "unverified"):
+        # We have no landlord signal either way. Two 90-100 lb dogs are the
+        # hard constraint of this search, so an unverified policy is a risk,
+        # not a neutral. Small penalty: enough to break ties in favour of
+        # certainty, not enough to bury a listing worth a phone call.
+        s -= 5
 
     # Walk times — Presidio is primary.
     if walk_map is not None:

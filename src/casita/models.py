@@ -10,7 +10,7 @@ Source = Literal["zillow", "craigslist", "zumper", "redfin", "manual"]
 #   "dogs_ok"   — dogs allowed, no size given (needs a conversation)
 #   "small_only"— only small/under-N-lb dogs (excludes us, but visible to user)
 #   "no_dogs"   — no dogs (gate)
-DogPolicy = Literal["large_ok", "dogs_ok", "small_only", "no_dogs"]
+DogPolicy = Literal["large_ok", "dogs_ok", "small_only", "no_dogs", "unverified"]
 
 
 class Listing(BaseModel):
@@ -26,6 +26,7 @@ class Listing(BaseModel):
     sqft: int | None = None
     pets_allowed: bool | None = None
     dog_policy: DogPolicy | None = None
+    dog_policy_evidence: str | None = None  
     parking: str | None = None
     laundry: str | None = None
     has_yard: bool | None = None  # LLM-detected: private outdoor space, backyard, patio, garden

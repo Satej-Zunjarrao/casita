@@ -258,12 +258,18 @@ def _render_kv(L: Listing, walk_map, drive_map, drive_bakery) -> str:
     if bb:
         rows.append(row("size", " · ".join(_esc(b) for b in bb)))
 
-    if L.dog_policy:
-        label = dogs.LABELS.get(L.dog_policy, L.dog_policy)
-        cls = "v warn" if L.dog_policy == "no_dogs" else (
-            "v caution" if L.dog_policy == "small_only" else "v"
-        )
-        rows.append(row("dogs", _esc(label), cls))
+    policy = L.dog_policy or "unverified"
+    label = dogs.LABELS.get(policy, policy)
+    cls = "v warn" if policy == "no_dogs" else (
+        "v caution" if policy in ("small_only", "unverified") else "v"
+    )
+    if policy == "unverified":
+        value = _esc(label) + ' <span class="dim">— not stated in the listing</span>'
+    elif L.dog_policy_evidence:
+        value = _esc(label) + f' <span class="dim">— {_esc(L.dog_policy_evidence)}</span>'
+    else:
+        value = _esc(label) + ' <span class="dim">— asserted, no evidence recorded</span>'
+    rows.append(row("dogs", value, cls))
     if L.parking:
         parking_warn = (L.parking or "").lower() in {"no parking", "none"}
         rows.append(row("parking", _esc(_scrub(L.parking)), "v warn" if parking_warn else "v"))

@@ -21,13 +21,13 @@ def get(source: str, source_id: str, ttl_s: int = DEFAULT_TTL_S) -> str | None:
         return None
     if time.time() - p.stat().st_mtime > ttl_s:
         return None
-    return p.read_text()
+    return p.read_text(encoding="utf-8")
 
 
 def put(source: str, source_id: str, html: str) -> None:
     p = _path(source, source_id)
     p.parent.mkdir(parents=True, exist_ok=True)
-    p.write_text(html)
+    p.write_text(html, encoding="utf-8")
 
 
 def invalidate(source: str, source_id: str) -> None:

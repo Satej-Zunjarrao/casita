@@ -19,6 +19,9 @@ The demo path does not need credentials. It does not scrape, call Vertex, read
 GCS, deploy to Firebase, or call the Google Maps Routes API. It does use the
 local Playwright Chromium browser to capture Open Graph preview cards from
 listing photos and facts.
+The demo runs on Windows. `tzdata` installs there so `ZoneInfo` can resolve
+`America/Los_Angeles`, and file writes name their encoding explicitly rather
+than inheriting the OS default.
 
 ## Live Runs
 

@@ -105,7 +105,7 @@ async def _extract_card(card) -> Listing | None:
         # The URL filter is pets_dog=1 — landlord checked "dogs ok". Body enrichment
         # may downgrade this to False if it finds "no large dogs" or similar.
         pets_allowed=True,
-        dog_policy="dogs_ok",  # baseline from the search filter; enrichment refines.
+        dog_policy=None,  
         image_url=image_url,
         raw={"hood": hood, "title": title, "price_text": price_text},
     )
@@ -244,6 +244,7 @@ def _parse_detail_html(html: str, listing: Listing) -> None:
         refined = dogs.classify(body, default=listing.dog_policy)
         if refined:
             listing.dog_policy = refined
+            listing.dog_policy_evidence = f"craigslist body text matched {refined}"
         if refined in ("no_dogs", "small_only"):
             listing.pets_allowed = False
         ph = _PHONE_RE.search(body)
